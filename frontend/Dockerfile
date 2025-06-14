@@ -3,21 +3,16 @@ FROM node:18-alpine AS build
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package management files
 COPY package.json ./
 COPY package-lock.json ./
 
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
-# Explicitly copy the public directory first
+# Copy application source code and public assets
 COPY public ./public
-
-# Copy the rest of the application code
-COPY . .
-
-# List files in the current directory for debugging
-RUN ls -la
+COPY src ./src
 
 # Build the application
 RUN npm run build
