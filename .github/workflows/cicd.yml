@@ -24,6 +24,9 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/mes-backend:latest
 
+      - name: List files in frontend directory for debugging
+        run: ls -laR frontend/
+
       - name: Build and push frontend image
         uses: docker/build-push-action@v4
         with:
