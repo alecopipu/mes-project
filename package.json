@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@nestjs/mapped-types": "^2.1.0",
+    "@nestjs/schedule": "^6.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "helmet": "^8.1.0",
+    "nestjs-rate-limiter": "^3.1.0",
+    "react-router-dom": "^7.6.2"
+  }
+}

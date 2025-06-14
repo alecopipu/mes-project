@@ -1,0 +1,58 @@
+name: MES CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mes-backend:latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/mes-frontend:latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build_and_push
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Update image tags in Kubernetes manifests
+        run: |
+          sed -i 's|DOCKERHUB_USERNAME|${{ secrets.DOCKERHUB_USERNAME }}|g' k8s/backend-deployment.yaml
+          sed -i 's|DOCKERHUB_USERNAME|${{ secrets.DOCKERHUB_USERNAME }}|g' k8s/frontend-deployment.yaml
+
+      - name: Deploy to Kubernetes
+        run: kubectl apply -f k8s
+
+      - name: Wait for deployment rollout
+        run: |
+          kubectl rollout status deployment/backend-deployment --timeout=120s
+          kubectl rollout status deployment/frontend-deployment --timeout=120s 
