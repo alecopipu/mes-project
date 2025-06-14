@@ -10,11 +10,14 @@ COPY package-lock.json ./
 # Install dependencies
 RUN npm install --legacy-peer-deps
 
+# Explicitly copy the public directory first
+COPY public ./public
+
 # Copy the rest of the application code
 COPY . .
 
-# List files in the public directory for debugging
-RUN ls -la public
+# List files in the current directory for debugging
+RUN ls -la
 
 # Build the application
 RUN npm run build
